@@ -1,0 +1,13 @@
+{
+  "name": "ai-skills-grader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Отдельный сервис-прокси к Ландеву для оценки ответов в проверке ИИ-грамотности AIC. Не связан с trends-card-generator.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
