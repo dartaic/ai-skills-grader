@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка ИИ-грамотности · AIC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F3EC; --surface:#FFFFFF; --surface-2:#EFEADD;
+  --ink:#1E2A28; --muted:#5B6B66; --line:#DDD6C4;
+  --accent:#2F5D50; --accent-ink:#FFFFFF; --accent-soft:#E4EFEA;
+  --warn:#B8763B; --warn-soft:#F6E8D8;
+  --bad:#A6473B; --bad-soft:#F5E1DE;
+  --good:#2F5D50; --good-soft:#E4EFEA;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font-family:'Manrope',system-ui,sans-serif; margin:0; padding-inline:16px;}
+h1,h2,h3{font-family:'PT Serif',Georgia,serif; font-weight:700; margin:0 0 .4em;}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+.wrap{max-width:760px; margin:0 auto; padding-block:28px 60px;}
+.wrap.wide{max-width:1060px;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:16px;}
+.muted{color:var(--muted);}
+.small{font-size:.85em;}
+.eyebrow{font-size:.78em; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:.5em;}
+p{line-height:1.55;}
+.btn{display:inline-flex; align-items:center; gap:.5em; background:var(--accent); color:var(--accent-ink); border:none; border-radius:999px; padding:.75em 1.4em; font-family:inherit; font-weight:700; font-size:.95em; cursor:pointer;}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--line);}
+.btn.small{padding:.5em 1em; font-size:.85em;}
+.row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+.row.between{justify-content:space-between;}
+input[type=text], input[type=email], input[type=password], textarea, select{
+  width:100%; font-family:inherit; font-size:1em; color:var(--ink); background:var(--surface-2);
+  border:1px solid var(--line); border-radius:10px; padding:.7em .9em; margin-top:.3em;
+}
+textarea{resize:vertical; min-height:130px; line-height:1.5;}
+label.field{display:block; margin-bottom:16px; font-weight:600; font-size:.92em;}
+.pill-group{display:flex; flex-direction:column; gap:8px; margin-top:.4em;}
+.pill{display:flex; align-items:flex-start; gap:.6em; border:1px solid var(--line); border-radius:10px; padding:.7em .9em; cursor:pointer; font-weight:500; font-size:.95em; background:var(--surface-2);}
+.pill:has(input:checked){border-color:var(--accent); background:var(--accent-soft);}
+.pill input{margin-top:.2em; accent-color:var(--accent);}
+.progress{height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; margin-bottom:22px;}
+.progress > div{height:100%; background:var(--accent); transition:width .3s;}
+.step-label{font-size:.8em; color:var(--muted); margin-bottom:6px;}
+.crit-bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.crit-bar-label{width:190px; flex-shrink:0; font-size:.85em;}
+.crit-bar-track{flex:1; height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden;}
+.crit-bar-fill{height:100%; border-radius:999px; background:var(--accent);}
+.crit-bar-score{width:2.4em; text-align:right; font-size:.85em; font-weight:700;}
+.badge{display:inline-block; padding:.3em .8em; border-radius:999px; font-size:.8em; font-weight:700;}
+.badge.good{background:var(--good-soft); color:var(--good);}
+.badge.warn{background:var(--warn-soft); color:var(--warn);}
+.badge.bad{background:var(--bad-soft); color:var(--bad);}
+.badge.pending{background:var(--surface-2); color:var(--muted);}
+a{color:var(--accent);}
+.footer-link{display:block; text-align:center; margin-top:30px; font-size:.8em; color:var(--muted); text-decoration:none; cursor:pointer;}
+details{border:1px solid var(--line); border-radius:10px; padding:.8em 1em; margin-top:10px; background:var(--surface-2);}
+details summary{cursor:pointer; font-weight:600; font-size:.9em;}
+table{width:100%; border-collapse:collapse; font-size:.88em;}
+th,td{padding:.55em .6em; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+th{font-family:'PT Serif',serif; font-weight:700; background:var(--surface-2);}
+.matrix-cell{font-weight:700; text-align:center; border-radius:8px;}
+.table-scroll{overflow-x:auto;}
+.tag{display:inline-block; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:.2em .7em; font-size:.75em; margin:2px 4px 2px 0;}
+.err{color:var(--bad); font-size:.88em; margin-top:8px;}
+.hidden{display:none!important;}
+.topbar{display:flex; justify-content:space-between; align-items:center; max-width:760px; margin:0 auto; padding-top:16px; font-size:.85em; color:var(--muted);}
+.topbar.wide{max-width:1060px;}
+.topbar a{cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"></div>
+<div class="wrap" id="app"></div>
+
+<script>
+const api = (path, opts={}) => fetch('/api'+path, {
+  method: opts.method || 'GET',
+  headers: {'Content-Type':'application/json'},
+  credentials: 'include',
+  body: opts.body ? JSON.stringify(opts.body) : undefined,
+}).then(async r => {
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || 'ошибка запроса');
+  return data;
+});
+
+const LEVEL_LABEL = ["только знакомится","делает первые шаги","уверенно применяет","может делиться опытом"];
+const LEVEL_CLASS = ["bad","warn","good","good"];
+
+const state = {
+  screen: 'loading', // loading | auth | self | case | risk | results | admin
+  authMode: 'register',
+  user: null,
+  quiz: null,          // /api/quiz-data
+  submission: null,    // /api/submission
+  selfReport: { frequency:null, tools:[], toolsOther:'', obstacles:[], selfRating:null },
+  caseIndex: 0,
+  caseAnswers: {},
+  riskIndex: 0,
+  riskDraftIdx: null,
+  riskConfirmed: false,
+  riskAnswers: [],
+  error: null,
+};
+
+const el = document.getElementById('app');
+const topbar = document.getElementById('topbar');
+
+async function boot(){
+  try{
+    const me = await api('/me');
+    state.user = me.user;
+    await afterLogin();
+  }catch(e){
+    state.screen = 'auth';
+    render();
+  }
+}
+boot();
+
+async function afterLogin(){
+  const [quiz, sub] = await Promise.all([ api('/quiz-data'), api('/submission') ]);
+  state.quiz = quiz;
+  state.submission = sub.submission;
+  state.screen = sub.submission ? 'results' : 'self';
+  render();
+}
+
+function renderTopbar(){
+  if(!state.user){ topbar.innerHTML=''; return; }
+  topbar.innerHTML = `<div>${state.user.fullName} · ${state.user.roles.map(r=>state.quiz?.roles?.[r]?.label||r).join(', ')}</div>
+    <div class="row">
+      ${state.user.isAdmin ? `<a id="tb-admin">панель для руководства</a>` : ''}
+      <a id="tb-logout">выйти</a>
+    </div>`;
+  const a = document.getElementById('tb-admin'); if(a) a.onclick = ()=>{ state.screen='admin'; render(); };
+  document.getElementById('tb-logout').onclick = async ()=>{ await api('/logout',{method:'POST'}); location.reload(); };
+}
+
+function render(){
+  renderTopbar();
+  el.innerHTML = '';
+  if(state.screen==='loading') return;
+  if(state.screen==='auth') return renderAuth();
+  if(state.screen==='self') return renderSelf();
+  if(state.screen==='case') return renderCase();
+  if(state.screen==='risk') return renderRisk();
+  if(state.screen==='results') return renderResults();
+  if(state.screen==='admin') return renderAdmin();
+}
+
+/* ============ АВТОРИЗАЦИЯ ============ */
+function renderAuth(){
+  const isReg = state.authMode==='register';
+  const card = document.createElement('div');
+  card.className='card';
+  card.innerHTML = `
+    <div class="eyebrow">ИИ в работе AIC · дружелюбная самопроверка</div>
+    <h1>${isReg?'Регистрация':'Вход'}</h1>
+    <p>Это не экзамен и не повод для оргвыводов — мы хотим понять, как команда на самом деле использует ИИ, чтобы предложить обучение там, где оно правда нужно.</p>
+    <label class="field">Рабочая почта<input type="email" id="f-email" placeholder="you@company.ru"></label>
+    <label class="field">Пароль<input type="password" id="f-pass" placeholder="минимум 6 символов"></label>
+    ${isReg ? `
+    <label class="field">Имя и фамилия<input type="text" id="f-name" placeholder="Имя Фамилия"></label>
+    <label class="field">Ваша роль (можно выбрать несколько, если совмещаете)
+      <div class="pill-group" id="f-roles">
+        ${Object.entries(ROLES()).map(([k,v])=>`<label class="pill"><input type="checkbox" value="${k}" class="role-cb"><span>${v.label}</span></label>`).join('')}
+      </div>
+    </label>` : ''}
+    <div id="auth-err" class="err"></div>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn" id="auth-submit">${isReg?'Зарегистрироваться':'Войти'}</button>
+    </div>
+    <a class="footer-link" id="auth-switch">${isReg?'уже есть аккаунт? войти':'ещё нет аккаунта? зарегистрироваться'}</a>
+  `;
+  el.appendChild(card);
+  document.getElementById('auth-switch').onclick = ()=>{ state.authMode = isReg?'login':'register'; render(); };
+  document.getElementById('auth-submit').onclick = async ()=>{
+    const email = document.getElementById('f-email').value.trim();
+    const password = document.getElementById('f-pass').value;
+    const errEl = document.getElementById('auth-err');
+    errEl.textContent='';
+    try{
+      if(isReg){
+        const fullName = document.getElementById('f-name').value.trim();
+        const roles = [...document.querySelectorAll('.role-cb:checked')].map(c=>c.value);
+        if(roles.length===0){ errEl.textContent='выберите хотя бы одну роль'; return; }
+        const res = await api('/register', {method:'POST', body:{email,password,fullName,roles}});
+        state.user = res.user;
+      } else {
+        const res = await api('/login', {method:'POST', body:{email,password}});
+        state.user = res.user;
+      }
+      await afterLogin();
+    }catch(e){ errEl.textContent = e.message; }
+  };
+}
+function ROLES(){
+  return state.quiz?.roles || {
+    designer:{label:'Дизайнер'}, artdir:{label:'Арт-директор'}, manager:{label:'Менеджер проектов'},
+    headdir:{label:'Руководитель направления'}, hr:{label:'HR'}, accounting:{label:'Бухгалтерия'},
+    lawyer:{label:'Юрист'}, ceo:{label:'Генеральный директор'},
+  };
+}
+
+/* ============ САМООТЧЁТ ============ */
+function progressBar(step,total){
+  const d=document.createElement('div');
+  d.innerHTML = `<div class="step-label">Шаг ${step} из ${total}</div><div class="progress"><div style="width:${(step/total*100).toFixed(0)}%"></div></div>`;
+  return d;
+}
+
+function renderSelf(){
+  el.appendChild(progressBar(1,4));
+  const card=document.createElement('div'); card.className='card';
+  const sr = state.selfReport;
+  card.innerHTML = `
+    <h2>Немного о твоей практике</h2>
+    <p class="muted small">Эта часть не оценивается — отвечай честно, это просто помогает увидеть реальную картину использования ИИ в компании.</p>
+    <label class="field">Как часто вы используете ИИ для рабочих задач?
+      <div class="pill-group">${["Никогда","Несколько раз в месяц","Несколько раз в неделю","Ежедневно"].map((t,i)=>`
+        <label class="pill"><input type="radio" name="freq" value="${i}" ${sr.frequency===i?'checked':''}><span>${t}</span></label>`).join('')}</div>
+    </label>
+    <label class="field">Какими инструментами пользуетесь? (можно несколько)
+      <div class="pill-group">
+        ${(state.quiz.toolsList||[]).map(t=>`<label class="pill"><input type="checkbox" value="${t}" class="tool-cb" ${sr.tools.includes(t)?'checked':''}><span>${t}</span></label>`).join('')}
+        <label class="pill"><input type="text" id="tools-other" placeholder="Другое (можно дописать свой инструмент)…" style="border:none;background:transparent;padding:0;margin:0;width:100%;" value="${sr.toolsOther}"></label>
+      </div>
+    </label>
+    <label class="field">Что мешает использовать ИИ активнее?
+      <div class="pill-group">${(state.quiz.obstacles||[]).map(t=>`<label class="pill"><input type="checkbox" value="${t}" class="obs-cb" ${sr.obstacles.includes(t)?'checked':''}><span>${t}</span></label>`).join('')}</div>
+    </label>
+    <label class="field">Как бы вы сами оценили свой текущий уровень?
+      <div class="pill-group">${["Начинающий","Средний","Уверенный","Эксперт"].map((t,i)=>`
+        <label class="pill"><input type="radio" name="selfrate" value="${i}" ${sr.selfRating===i?'checked':''}><span>${t}</span></label>`).join('')}</div>
+    </label>
+    <div class="row between"><span></span><button class="btn" id="next-btn">Далее</button></div>
+  `;
+  el.appendChild(card);
+  el.querySelectorAll('input[name=freq]').forEach(r=>r.onchange=e=>sr.frequency=+e.target.value);
+  el.querySelectorAll('input[name=selfrate]').forEach(r=>r.onchange=e=>sr.selfRating=+e.target.value);
+  el.querySelectorAll('.tool-cb').forEach(cb=>cb.onchange=e=>{ const v=e.target.value; sr.tools = e.target.checked ? [...sr.tools,v] : sr.tools.filter(x=>x!==v); });
+  el.querySelectorAll('.obs-cb').forEach(cb=>cb.onchange=e=>{ const v=e.target.value; sr.obstacles = e.target.checked ? [...sr.obstacles,v] : sr.obstacles.filter(x=>x!==v); });
+  document.getElementById('tools-other').oninput = e=> sr.toolsOther = e.target.value;
+  document.getElementById('next-btn').onclick = ()=>{
+    if(sr.frequency===null || sr.selfRating===null){ alert('Ответьте на оба вопроса про частоту и самооценку.'); return; }
+    state.screen='case'; state.caseIndex=0; render();
+  };
+}
+
+/* ============ КЕЙСЫ ============ */
+function renderCase(){
+  const cases = state.quiz.cases;
+  if(cases.length===0){ state.screen='risk'; state.riskIndex=0; return render(); }
+  const idx = state.caseIndex;
+  const c = cases[idx];
+  const saved = state.caseAnswers[c.id] || '';
+  el.appendChild(progressBar(2,4));
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML = `
+    <div class="eyebrow">Кейс ${idx+1} из ${cases.length} · ${state.quiz.roles[c.roleKey]?.label||''}</div>
+    <p style="font-size:1.05em;font-weight:600;">${c.prompt}</p>
+    <textarea id="answer" placeholder="Опишите свой подход…">${saved}</textarea>
+    <p class="small muted" style="margin-top:8px;">Здесь нет единственно правильного ответа — просто опиши, как бы ты на самом деле подошёл(-шла) к этой задаче. Оценка появится в сводке позже, не сразу.</p>
+    <div class="row between" style="margin-top:14px;">
+      <button class="btn ghost" id="back-btn">Назад</button>
+      <button class="btn" id="next-btn">Далее</button>
+    </div>
+  `;
+  el.appendChild(card);
+  const ta = document.getElementById('answer');
+  ta.oninput = ()=> state.caseAnswers[c.id]=ta.value;
+  document.getElementById('back-btn').onclick = ()=>{
+    state.caseAnswers[c.id]=ta.value;
+    if(idx===0){ state.screen='self'; } else { state.caseIndex--; }
+    render();
+  };
+  document.getElementById('next-btn').onclick = ()=>{
+    if(!ta.value || ta.value.trim().length<3){ alert('Напишите ответ перед тем как продолжить.'); return; }
+    state.caseAnswers[c.id]=ta.value;
+    if(idx<cases.length-1){ state.caseIndex++; } else { state.screen='risk'; state.riskIndex=0; }
+    render();
+  };
+}
+
+/* ============ РИСК-ВОПРОСЫ ============ */
+function renderRisk(){
+  const qs = state.quiz.riskQuestions;
+  const idx = state.riskIndex;
+  const q = qs[idx];
+  const already = state.riskAnswers.find(r=>r.id===q.id);
+  state.riskDraftIdx = already ? already.idx : null;
+  state.riskConfirmed = !!already;
+
+  el.appendChild(progressBar(3,4));
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML = `
+    <div class="eyebrow">Риски и ответственность · вопрос ${idx+1} из ${qs.length}</div>
+    <p style="font-size:1.05em;font-weight:600;">${q.q}</p>
+    <div class="pill-group" id="opts">
+      ${q.options.map((o,i)=>`<label class="pill"><input type="radio" name="risk" value="${o.idx}" ${already && already.idx===o.idx?'checked':''} ${already?'disabled':''}><span>${o.t}</span></label>`).join('')}
+    </div>
+    <div id="risk-explain"></div>
+    <div class="row between" style="margin-top:20px;">
+      <button class="btn ghost" id="back-btn">Назад</button>
+      <button class="btn" id="confirm-btn" ${already?'class="hidden"':''}>Ответить</button>
+      <button class="btn" id="next-btn" style="${already?'':'display:none;'}">${idx<qs.length-1?'Далее':'Завершить'}</button>
+    </div>
+  `;
+  el.appendChild(card);
+
+  if(already) showRiskExplain(document.getElementById('risk-explain'), q, already.idx);
+
+  el.querySelectorAll('input[name=risk]').forEach(r=>r.onchange=e=> state.riskDraftIdx=+e.target.value);
+
+  document.getElementById('back-btn').onclick = ()=>{
+    if(idx===0){ state.screen='case'; state.caseIndex = Math.max(0, state.quiz.cases.length-1); }
+    else { state.riskIndex--; }
+    render();
+  };
+  const confirmBtn = document.getElementById('confirm-btn');
+  const nextBtn = document.getElementById('next-btn');
+  if(confirmBtn) confirmBtn.onclick = ()=>{
+    if(state.riskDraftIdx===null){ alert('Выберите вариант ответа.'); return; }
+    const opt = q.options.find(o=>o.idx===state.riskDraftIdx);
+    state.riskAnswers = state.riskAnswers.filter(a=>a.id!==q.id).concat([{id:q.id, idx:opt.idx, choiceText:opt.t, score:opt.s}]);
+    el.querySelectorAll('input[name=risk]').forEach(r=> r.disabled = true);
+    showRiskExplain(document.getElementById('risk-explain'), q, opt.idx);
+    confirmBtn.classList.add('hidden');
+    nextBtn.style.display = '';
+  };
+  if(nextBtn) nextBtn.onclick = ()=>{
+    if(idx<qs.length-1){ state.riskIndex++; render(); } else { finishAndSubmit(); }
+  };
+}
+function showRiskExplain(container,q,idx){
+  const opt = q.options.find(o=>o.idx===idx);
+  const s = opt.s;
+  const cls = s>=3?'good':s>=2?'warn':'bad';
+  const note = s>=3 ? 'отличный выбор — это самый безопасный и грамотный вариант.' : s>=2 ? 'неплохо, рабочий вариант — но есть чуть более точный ответ среди остальных.' : 'тут стоит быть внимательнее — есть более безопасный вариант среди остальных.';
+  container.innerHTML = `<p class="badge ${cls}" style="margin-top:12px;">${s}/3 — ${note}</p>`;
+}
+
+async function finishAndSubmit(){
+  try{
+    const res = await api('/submission', {method:'POST', body:{
+      selfReport: state.selfReport,
+      riskAnswers: state.riskAnswers,
+      cases: state.quiz.cases.map(c=>({id:c.id, answerText: state.caseAnswers[c.id]||''})),
+    }});
+    state.submission = res.submission;
+    state.screen='results';
+    render();
+  }catch(e){ alert('не удалось сохранить результат: '+e.message); }
+}
+
+/* ============ РЕЗУЛЬТАТЫ ============ */
+function renderResults(){
+  const r = state.submission;
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML = `
+    <div class="eyebrow">Готово · спасибо!</div>
+    <h2>Отлично, ты справился(-ась)!</h2>
+    <p>Это не финал, а старт — теперь понятно, с чего можно расти. Ответы по кейсам сохранены и появятся в сводке для руководства чуть позже, после проверки. А вот что можно посмотреть прямо сейчас:</p>
+    <div style="margin:18px 0;">
+      ${['safety','verify'].map(k=>`
+      <div class="crit-bar-row">
+        <div class="crit-bar-label">${state.quiz.criteria[k].label} <span class="small muted">(по риск-вопросам)</span></div>
+        <div class="crit-bar-track"><div class="crit-bar-fill" style="width:${r.criteriaAvg[k]!=null?(r.criteriaAvg[k]/3*100).toFixed(0):0}%"></div></div>
+        <div class="crit-bar-score mono">${r.criteriaAvg[k]!=null?r.criteriaAvg[k].toFixed(1):'—'}/3</div>
+      </div>`).join('')}
+      ${['task','tool'].map(k=>`
+      <div class="crit-bar-row">
+        <div class="crit-bar-label">${state.quiz.criteria[k].label}</div>
+        <div class="crit-bar-track"><div class="crit-bar-fill" style="width:0%"></div></div>
+        <div class="crit-bar-score mono"><span class="badge pending">${r.graded? (r.criteriaAvg[k]!=null?r.criteriaAvg[k].toFixed(1)+'/3':'—') : 'оценивается'}</span></div>
+      </div>`).join('')}
+    </div>
+    <p class="small muted">Результат учтён в сводке для руководства — он поможет понять, какое обучение будет полезно тебе и команде.</p>
+    <div class="row" style="margin-top:16px;"><button class="btn ghost small" id="retake-btn">пройти заново</button></div>
+  `;
+  el.appendChild(card);
+  document.getElementById('retake-btn').onclick = ()=>{
+    state.caseAnswers={}; state.riskAnswers=[]; state.selfReport={frequency:null,tools:[],toolsOther:'',obstacles:[],selfRating:null};
+    state.screen='self'; state.caseIndex=0; state.riskIndex=0; render();
+  };
+}
+
+/* ============ АДМИН-ПАНЕЛЬ ============ */
+async function renderAdmin(){
+  el.innerHTML = `<div class="card">загружаю данные…</div>`;
+  document.querySelector('.wrap').classList.add('wide');
+  topbar.classList.add('wide');
+  let data;
+  try{ data = await api('/admin/submissions'); }
+  catch(e){ el.innerHTML = `<div class="card"><p>${e.message}</p></div>`; return; }
+  const rows = data.submissions;
+  renderAdminDashboard(rows);
+}
+
+function median(arr){ if(!arr.length) return null; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function levelFromAvg(avg){ if(avg<1) return 0; if(avg<1.5) return 1; if(avg<2.5) return 2; return 3; }
+function verdictForRole(avgs){
+  if(!avgs.length) return {text:'нет данных', cls:'muted'};
+  const m=median(avgs); const spread=Math.max(...avgs)-Math.min(...avgs); const lvl=levelFromAvg(m);
+  if(lvl<=1) return {text:'стоит предложить базовое обучение', cls:'bad'};
+  if(spread>=1.5) return {text:'разброс большой — два потока: база и продвинутый', cls:'warn'};
+  return {text:'база уже сильная — точечные материалы', cls:'good'};
+}
+
+function renderAdminDashboard(rows){
+  const CRIT_ORDER = ['task','verify','safety','tool','process'];
+  const roleKeys = Object.keys(ROLES());
+  const byRole = {};
+  roleKeys.forEach(rk => byRole[rk] = rows.filter(s => s.user.roles.includes(rk) && s.graded));
+  const graded = rows.filter(s=>s.graded);
+  const pendingCount = rows.length - graded.length;
+  const overallAvgAll = graded.length ? graded.reduce((a,d)=>a+d.overallAvg,0)/graded.length : null;
+
+  const critAvgAll = {};
+  CRIT_ORDER.forEach(k=>{ const vals = graded.map(d=>d.criteriaAvg[k]).filter(v=>v!=null); critAvgAll[k] = vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null; });
+  const weakest = CRIT_ORDER.filter(k=>critAvgAll[k]!=null).sort((a,b)=>critAvgAll[a]-critAvgAll[b])[0];
+
+  function cellColor(v){
+    if(v==null) return '';
+    if(v<1) return 'background:var(--bad-soft); color:var(--bad);';
+    if(v<1.5) return 'background:var(--warn-soft); color:var(--warn);';
+    if(v<2.5) return 'background:var(--accent-soft); color:var(--accent);';
+    return 'background:var(--good-soft); color:var(--good);';
+  }
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="eyebrow">Панель для руководства</div>
+      <h1>ИИ-грамотность сотрудников</h1>
+      <p class="small muted">Карта сильных сторон и точек роста по команде, а не рейтинг «кто хуже». Ниже — все ответы каждого, без анонимности.</p>
+      ${pendingCount>0?`<p class="badge warn">${pendingCount} прохожден${pendingCount===1?'ие':'ий'} ждут оценки кейсов</p>`:''}
+      <div class="row" style="gap:24px;">
+        <div><div class="mono" style="font-size:1.6em;font-weight:700;">${rows.length}</div><div class="small muted">прохождений</div></div>
+        <div><div class="mono" style="font-size:1.6em;font-weight:700;">${overallAvgAll!=null?overallAvgAll.toFixed(1):'—'}/3</div><div class="small muted">средний балл</div></div>
+        <div><div class="mono" style="font-size:1.6em;font-weight:700;">${overallAvgAll!=null?LEVEL_LABEL[levelFromAvg(overallAvgAll)]:'—'}</div><div class="small muted">уровень по компании</div></div>
+      </div>
+      ${weakest?`<p class="small" style="margin-top:14px;">Самый слабый критерий по компании — <b>${state_criteria()[weakest].label}</b> (${critAvgAll[weakest].toFixed(1)}/3).</p>`:''}
+      <button class="btn small ghost" id="export-btn" style="margin-top:10px;">Скачать полную таблицу (CSV)</button>
+      <button class="btn small ghost" id="grade-btn" style="margin-top:10px;">Оценить новые ответы сейчас</button>
+    </div>
+
+    <div class="card">
+      <h3>Матрица: роль × критерий</h3>
+      <div class="table-scroll"><table>
+        <tr><th>Роль</th>${CRIT_ORDER.map(k=>`<th>${state_criteria()[k].label}</th>`).join('')}<th>N</th><th>Решение</th></tr>
+        ${roleKeys.map(rk=>{
+          const list = byRole[rk];
+          const cells = CRIT_ORDER.map(k=>{ const vals=list.map(d=>d.criteriaAvg[k]).filter(v=>v!=null); return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null; });
+          const total = rows.filter(s=>s.user.roles.includes(rk)).length;
+          const v = verdictForRole(list.map(d=>d.overallAvg));
+          return `<tr><td>${ROLES()[rk].label}</td>${cells.map(c=>`<td class="matrix-cell" style="${cellColor(c)}">${c!=null?c.toFixed(1):'—'}</td>`).join('')}<td class="mono">${list.length}/${total}</td><td><span class="badge ${v.cls}">${v.text}</span></td></tr>`;
+        }).join('')}
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h3>Все прохождения — полный просмотр ответов</h3>
+      <div id="submissions-list"></div>
+    </div>
+    <a class="footer-link" id="back-link">← к экрану прохождения</a>
+  `;
+  el.innerHTML=''; el.appendChild(wrap);
+  document.getElementById('back-link').onclick = ()=>{ document.querySelector('.wrap').classList.remove('wide'); topbar.classList.remove('wide'); state.screen = state.submission?'results':'self'; render(); };
+  document.getElementById('export-btn').onclick = ()=>{ window.open('/api/admin/export.csv','_blank'); };
+  document.getElementById('grade-btn').onclick = async (e)=>{
+    e.target.disabled=true; e.target.textContent='оцениваю…';
+    try{
+      const token = prompt('токен для запуска оценки (GRADE_TOKEN)');
+      const r = await fetch('/api/admin/grade', {method:'POST', headers:{'x-grade-token':token||''}});
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error||'ошибка');
+      alert('оценено прохождений: '+d.graded);
+      renderAdmin();
+    }catch(err){ alert('не удалось: '+err.message); e.target.disabled=false; e.target.textContent='Оценить новые ответы сейчас'; }
+  };
+
+  const list = document.getElementById('submissions-list');
+  rows.sort((a,b)=> new Date(b.submittedAt)-new Date(a.submittedAt));
+  list.innerHTML = rows.map((s,i)=>`
+    <details style="margin-bottom:10px;">
+      <summary>${new Date(s.submittedAt).toLocaleDateString('ru-RU')} · <b>${s.user.fullName}</b> · ${s.user.email} · ${s.user.roles.map(r=>ROLES()[r]?.label||r).join(', ')} — ${s.graded?`<span class="badge ${LEVEL_CLASS[s.overallLevel]}">${LEVEL_LABEL[s.overallLevel]}</span>`:'<span class="badge pending">ожидает оценки</span>'}</summary>
+      <div style="padding-top:10px;">
+        <p class="small"><b>Самоотчёт:</b> частота — ${['никогда','несколько раз в месяц','несколько раз в неделю','ежедневно'][s.selfReport.frequency]??'—'}; самооценка — ${['начинающий','средний','уверенный','эксперт'][s.selfReport.selfRating]??'—'}; инструменты — ${[...(s.selfReport.tools||[]), s.selfReport.toolsOther].filter(Boolean).join(', ')||'—'}; что мешает — ${(s.selfReport.obstacles||[]).join(', ')||'—'}</p>
+        ${(s.cases||[]).map(c=>`<p class="small"><b>Кейс:</b> ${c.prompt}<br><b>Ответ:</b> ${(c.answerText||'—').replace(/</g,'&lt;')}</p>`).join('')}
+        ${(s.riskAnswers||[]).map(r=>`<p class="small"><b>Риск-вопрос ${r.id}:</b> выбрал «${r.choiceText}» — ${r.score}/3</p>`).join('')}
+        <div class="table-scroll"><table><tr>${CRIT_ORDER.map(k=>`<th>${state_criteria()[k].label.split(' ')[0]}</th>`).join('')}</tr><tr>${CRIT_ORDER.map(k=>`<td>${s.criteriaAvg[k]!=null?s.criteriaAvg[k].toFixed(1):'—'}</td>`).join('')}</tr></table></div>
+      </div>
+    </details>
+  `).join('') || '<p class="muted">пока никто не прошёл проверку.</p>';
+}
+function state_criteria(){ return state.quiz.criteria; }
+const CRIT_ORDER = ['task','verify','safety','tool','process'];
+</script>
+</body>
+</html>

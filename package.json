@@ -1,13 +1,16 @@
 {
-  "name": "ai-skills-grader",
-  "version": "1.0.0",
+  "name": "ai-skills-quiz",
+  "version": "2.0.0",
   "private": true,
-  "description": "Отдельный сервис-прокси к Ландеву для оценки ответов в проверке ИИ-грамотности AIC. Не связан с trends-card-generator.",
+  "description": "Проверка ИИ-грамотности AIC — отдельное веб-приложение (регистрация по рабочей почте, приватный кабинет, оценка кейсов через Ландев). Изолировано от trends-card-generator.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "better-sqlite3": "^11.3.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-session": "^2.1.0"
   }
 }
