@@ -15,10 +15,31 @@
   --bad:#A6473B; --bad-soft:#F5E1DE;
   --good:#2F5D50; --good-soft:#E4EFEA;
   --radius:14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12181A; --surface:#1B2325; --surface-2:#212B2D;
+    --ink:#EDEBE3; --muted:#9AA6A1; --line:#31403D;
+    --accent:#6FBBA0; --accent-ink:#0F1B18; --accent-soft:#1E3630;
+    --warn:#E0A968; --warn-soft:#3A2C1B;
+    --bad:#E08277; --bad-soft:#3A211E;
+    --good:#6FBBA0; --good-soft:#1E3630;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12181A; --surface:#1B2325; --surface-2:#212B2D;
+  --ink:#EDEBE3; --muted:#9AA6A1; --line:#31403D;
+  --accent:#6FBBA0; --accent-ink:#0F1B18; --accent-soft:#1E3630;
+  --warn:#E0A968; --warn-soft:#3A2C1B;
+  --bad:#E08277; --bad-soft:#3A211E;
+  --good:#6FBBA0; --good-soft:#1E3630;
+  color-scheme: dark;
 }
 *{box-sizing:border-box}
 body{background:var(--bg); color:var(--ink); font-family:'Manrope',system-ui,sans-serif; margin:0; padding-inline:16px;}
-h1,h2,h3{font-family:'PT Serif',Georgia,serif; font-weight:700; margin:0 0 .4em;}
+h1,h2,h3{font-family:'PT Serif',Georgia,serif; font-weight:700; text-wrap:balance; margin:0 0 .4em;}
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
 .wrap{max-width:760px; margin:0 auto; padding-block:28px 60px;}
 .wrap.wide{max-width:1060px;}
@@ -27,8 +48,9 @@ h1,h2,h3{font-family:'PT Serif',Georgia,serif; font-weight:700; margin:0 0 .4em;
 .small{font-size:.85em;}
 .eyebrow{font-size:.78em; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:.5em;}
 p{line-height:1.55;}
-.btn{display:inline-flex; align-items:center; gap:.5em; background:var(--accent); color:var(--accent-ink); border:none; border-radius:999px; padding:.75em 1.4em; font-family:inherit; font-weight:700; font-size:.95em; cursor:pointer;}
+.btn{display:inline-flex; align-items:center; gap:.5em; background:var(--accent); color:var(--accent-ink); border:none; border-radius:999px; padding:.75em 1.4em; font-family:inherit; font-weight:700; font-size:.95em; cursor:pointer; transition:opacity .15s;}
 .btn:disabled{opacity:.45; cursor:not-allowed;}
+.btn:hover:not(:disabled){opacity:.88;}
 .btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--line);}
 .btn.small{padding:.5em 1em; font-size:.85em;}
 .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
@@ -67,6 +89,8 @@ th{font-family:'PT Serif',serif; font-weight:700; background:var(--surface-2);}
 .table-scroll{overflow-x:auto;}
 .tag{display:inline-block; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:.2em .7em; font-size:.75em; margin:2px 4px 2px 0;}
 .err{color:var(--bad); font-size:.88em; margin-top:8px;}
+.spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
 .hidden{display:none!important;}
 .topbar{display:flex; justify-content:space-between; align-items:center; max-width:760px; margin:0 auto; padding-top:16px; font-size:.85em; color:var(--muted);}
 .topbar.wide{max-width:1060px;}
@@ -145,7 +169,7 @@ function renderTopbar(){
 function render(){
   renderTopbar();
   el.innerHTML = '';
-  if(state.screen==='loading') return;
+  if(state.screen==='loading'){ el.innerHTML = `<div class="card"><span class="spinner"></span> загружаю…</div>`; return; }
   if(state.screen==='auth') return renderAuth();
   if(state.screen==='self') return renderSelf();
   if(state.screen==='case') return renderCase();
@@ -161,9 +185,19 @@ function renderAuth(){
   card.className='card';
   card.innerHTML = `
     <div class="eyebrow">ИИ в работе AIC · дружелюбная самопроверка</div>
-    <h1>${isReg?'Регистрация':'Вход'}</h1>
-    <p>Это не экзамен и не повод для оргвыводов — мы хотим понять, как команда на самом деле использует ИИ, чтобы предложить обучение там, где оно правда нужно.</p>
-    <label class="field">Рабочая почта<input type="email" id="f-email" placeholder="you@company.ru"></label>
+    ${isReg ? `
+    <h1>Привет! Давай посмотрим, как ты используешь ИИ в работе</h1>
+    <p>Это не экзамен и не повод для оргвыводов. Мы хотим понять, как на самом деле команда пользуется ИИ в рабочих задачах — чтобы предложить обучение именно там, где оно правда нужно, и показать каждому, куда расти. Здесь нет «правильных» и «неправильных» людей — только разные стартовые точки.</p>
+    <p>Займёт около 20 минут: короткая анкета о твоей практике (без оценки), пара практических кейсов по твоей роли и несколько вопросов про риски — разбор по ним ты увидишь сразу после ответа.</p>
+    <details>
+      <summary>Как это устроено и куда идут результаты</summary>
+      <p class="small">Ответы на кейсы читает не коллега и не сосед по опенспейсу — они лежат в закрытой сводке, которую может открыть только руководство. Оценка идёт по прозрачной рубрике — пять критериев от 0 до 3, шкала показана на итоговом экране, никакой магии. Сводная картина по ролям и критериям нужна не как список «кто хорош, кто плох», а как карта, где нужнее обучение и у кого есть опыт, которым стоит поделиться с остальными. Опрос не анонимный: чтобы результат было к кому применить, нужны имя и рабочая почта.</p>
+    </details>
+    ` : `
+    <h1>С возвращением</h1>
+    <p>Войди под тем же email, что и при регистрации.</p>
+    `}
+    <label class="field" style="margin-top:20px;">Рабочая почта<input type="email" id="f-email" placeholder="you@company.ru"></label>
     <label class="field">Пароль<input type="password" id="f-pass" placeholder="минимум 6 символов"></label>
     ${isReg ? `
     <label class="field">Имя и фамилия<input type="text" id="f-name" placeholder="Имя Фамилия"></label>
@@ -174,7 +208,7 @@ function renderAuth(){
     </label>` : ''}
     <div id="auth-err" class="err"></div>
     <div class="row" style="margin-top:8px;">
-      <button class="btn" id="auth-submit">${isReg?'Зарегистрироваться':'Войти'}</button>
+      <button class="btn" id="auth-submit">${isReg?'Начать проверку':'Войти'}</button>
     </div>
     <a class="footer-link" id="auth-switch">${isReg?'уже есть аккаунт? войти':'ещё нет аккаунта? зарегистрироваться'}</a>
   `;
@@ -393,7 +427,7 @@ function renderResults(){
 
 /* ============ АДМИН-ПАНЕЛЬ ============ */
 async function renderAdmin(){
-  el.innerHTML = `<div class="card">загружаю данные…</div>`;
+  el.innerHTML = `<div class="card"><span class="spinner"></span> загружаю данные…</div>`;
   document.querySelector('.wrap').classList.add('wide');
   topbar.classList.add('wide');
   let data;
