@@ -159,7 +159,7 @@ function renderTopbar(){
   if(!state.user){ topbar.innerHTML=''; return; }
   topbar.innerHTML = `<div>${state.user.fullName} · ${state.user.roles.map(r=>state.quiz?.roles?.[r]?.label||r).join(', ')}</div>
     <div class="row">
-      ${state.user.isAdmin ? `<a id="tb-admin">панель для руководства</a>` : ''}
+      ${state.user.isAdmin ? `<a id="tb-admin">панель для администратора</a>` : ''}
       <a id="tb-logout">выйти</a>
     </div>`;
   const a = document.getElementById('tb-admin'); if(a) a.onclick = ()=>{ state.screen='admin'; render(); };
@@ -472,7 +472,7 @@ function renderAdminDashboard(rows){
   const wrap = document.createElement('div');
   wrap.innerHTML = `
     <div class="card">
-      <div class="eyebrow">Панель для руководства</div>
+      <div class="eyebrow">Панель для администратора</div>
       <h1>ИИ-грамотность сотрудников</h1>
       <p class="small muted">Карта сильных сторон и точек роста по команде, а не рейтинг «кто хуже». Ниже — все ответы каждого, без анонимности.</p>
       ${pendingCount>0?`<p class="badge warn">${pendingCount} прохожден${pendingCount===1?'ие':'ий'} ждут оценки кейсов</p>`:''}
